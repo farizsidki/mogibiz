@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MogiBiz — Business Simulator</title>
+<style>
+
+  :root {
+    /* Light theme*/
+    --bg:            #F4F1EA;
+    --bg-soft:       #FAF7F0;
+    --surface:       #FFFFFFCC;
+    --surface-solid: #FFFFFF;
+    --border:        #E6DFD2;
+    --text:          #2F2A24;
+    --text-soft:     #6B6358;
+    --muted:         #9A9387;
+
+    --accent:        #7FB3D5; 
+    --revenue:       #A8C8E8; 
+    --revenue-strong:#6FA8D6;
+    --cost:          #F2B5B5; 
+    --cost-strong:   #E78F8F;
+    --profit:        #B7DDB0; 
+    --profit-strong:#86C57E;
+    --warn:          #F6D98A; 
+    --warn-strong:   #E8B85C;
+    --danger:        #F2B5B5;
+    --info:          #C8B7E0; 
+
+    --shadow:        0 10px 30px rgba(60, 50, 35, 0.08), 0 2px 8px rgba(60, 50, 35, 0.04);
+    --radius-lg:     28px;
+    --radius-md:     20px;
+    --radius-sm:     16px;
+    --radius-pill:   999px;
+  }
+
+  [data-theme="dark"] {
+    --bg:            #1B1F26;
+    --bg-soft:       #232833;
+    --surface:       #2A303CCC;
+    --surface-solid: #2A303C;
+    --border:        #3A4150;
+    --text:          #ECE7DE;
+    --text-soft:     #BDB6A8;
+    --muted:         #8B8678;
+
+    --accent:        #9CC4DE;
+    --revenue:       #7AA6CF;
+    --revenue-strong:#A8C8E8;
+    --cost:          #D89A9A;
+    --cost-strong:   #F2B5B5;
+    --profit:        #8FBF87;
+    --profit-strong:#B7DDB0;
+    --warn:          #D9B36A;
+    --warn-strong:   #F6D98A;
+    --danger:        #D89A9A;
+    --info:          #B3A2D0;
+
+    --shadow:        0 12px 36px rgba(0,0,0,0.35), 0 2px 10px rgba(0,0,0,0.25);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.4s ease, color 0.4s ease;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- TOP BAR ---------- */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-soft);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  }
+  .brand {
+    display: flex; align-items: center; gap: 14px;
+  }
+  .brand-mark {
+    width: 46px; height: 46px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text);
+    box-shadow: var(--shadow);
+    transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+  .brand-mark svg {
+    width: 70%;
+    height: 70%;
+    display: block;
+    fill: currentColor;
+  }
+  .brand-title { font-size: 20px; font-weight: 700; letter-spacing: 0.2px; }
+  .brand-sub   { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+  .brand-author {
+    font-size: 12px;
+    margin-top: 2px;
+    color: var(--text);
+    font-family: 'Segoe UI', 'Helvetica Neue', system-ui, -apple-system, sans-serif;
+    font-style: italic;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: color 0.3s ease;
+  }
+  .brand-author::before {
+    content: "by ";
+    font-style: normal;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    font-size: 10px;
+    margin-right: 4px;
+  }
+
+  .theme-toggle {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--surface-solid);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 10px 18px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    font-size: 14px;
+    transition: transform 0.15s ease, background 0.3s ease;
+    box-shadow: var(--shadow);
+  }
+  .theme-toggle:hover { transform: translateY(-1px); }
+  .theme-toggle .dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--warn-strong);
+    transition: background 0.3s ease;
+  }
+  [data-theme="dark"] .theme-toggle .dot { background: var(--accent); }
+
+  /* ---------- LAYOUT ---------- */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1.35fr;
+    gap: 24px;
+    padding: 24px 32px 40px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--surface);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin: 4px 0 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after {
+    content: ""; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* ---------- INPUT GROUPS ---------- */
+  .group {
+    background: var(--bg-soft);
+    border-radius: var(--radius-md);
+    padding: 18px 18px 14px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+  }
+  .group-header {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; font-weight: 700;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+  .group-tag {
+    background: var(--info);
+    color: #2F2A24;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 10px;
+    letter-spacing: 0.6px;
+    font-weight: 700;
+  }
+  .group.master .group-tag { background: var(--warn); }
+  .group.finance .group-tag { background: var(--revenue); }
+  .group.marketing .group-tag { background: var(--profit); }
+  .group.ops .group-tag { background: var(--cost); }
+  .group.customer .group-tag { background: var(--info); }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--text-soft); margin-bottom: 6px;
+  }
+
+  .input-money,
+  .input-number {
+    width: 100%;
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 14px; font-weight: 600;
+    color: var(--text);
+    font-family: inherit;
+    outline: none;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+  }
+  .input-money:focus, .input-number:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(127, 179, 213, 0.18);
+  }
+
+  .slider-row {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .slider-row input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: var(--border);
+    border-radius: var(--radius-pill);
+    outline: none;
+  }
+  .slider-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px; height: 22px;
+    background: var(--accent);
+    border: 3px solid var(--surface-solid);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transition: transform 0.15s ease;
+  }
+  .slider-row input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+  .slider-row input[type="range"]::-moz-range-thumb {
+    width: 22px; height: 22px;
+    background: var(--accent);
+    border: 3px solid var(--surface-solid);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .slider-value {
+    min-width: 62px;
+    text-align: center;
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    padding: 6px 10px;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  /* ---------- KPI CARDS ---------- */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  @media (max-width: 720px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .kpi {
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+  }
+  .kpi:hover { transform: translateY(-2px); }
+  .kpi .kpi-label {
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--muted); font-weight: 700;
+  }
+  .kpi .kpi-value {
+    font-size: 22px; font-weight: 800; margin-top: 8px;
+    letter-spacing: -0.4px;
+    word-break: break-word;
+  }
+  .kpi .kpi-sub {
+    font-size: 11px; color: var(--text-soft); margin-top: 4px;
+  }
+  .kpi.revenue { border-left: 6px solid var(--revenue-strong); }
+  .kpi.qty     { border-left: 6px solid var(--info); }
+  .kpi.profit-pos { border-left: 6px solid var(--profit-strong); color: var(--text); }
+  .kpi.profit-pos .kpi-value { color: #4a8a44; }
+  [data-theme="dark"] .kpi.profit-pos .kpi-value { color: var(--profit-strong); }
+  .kpi.profit-neg { border-left: 6px solid var(--cost-strong); }
+  .kpi.profit-neg .kpi-value { color: #c25b5b; }
+  [data-theme="dark"] .kpi.profit-neg .kpi-value { color: var(--cost-strong); }
+  .kpi.margin { border-left: 6px solid var(--warn-strong); }
+
+  /* ---------- CHART ---------- */
+  .chart-card {
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 22px;
+    margin-bottom: 22px;
+  }
+  .chart-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .chart-title {
+    font-size: 14px; font-weight: 700;
+  }
+  .chart-legend {
+    display: flex; gap: 14px; flex-wrap: wrap;
+  }
+  .legend {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-soft);
+  }
+  .legend .swatch {
+    width: 12px; height: 12px; border-radius: 4px;
+  }
+
+  .chart {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+    height: 260px;
+    align-items: end;
+    padding: 10px 6px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .bar-col {
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    height: 100%;
+    position: relative;
+  }
+  .bar-value {
+    font-size: 11px; font-weight: 700;
+    color: var(--text-soft);
+    margin-bottom: 6px;
+    background: var(--bg-soft);
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .bar {
+    width: 70%;
+    max-width: 110px;
+    min-height: 2px;
+    border-radius: var(--radius-sm) var(--radius-sm) 6px 6px;
+    transition: height 0.6s cubic-bezier(.2,.7,.2,1), background 0.3s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .bar.revenue { background: linear-gradient(180deg, var(--revenue-strong), var(--revenue)); }
+  .bar.cost    { background: linear-gradient(180deg, var(--cost-strong), var(--cost)); }
+  .bar.profit  { background: linear-gradient(180deg, var(--profit-strong), var(--profit)); }
+  .bar.profit.neg { background: linear-gradient(180deg, var(--cost-strong), var(--cost)); }
+
+  .bar-label {
+    margin-top: 10px;
+    font-size: 12px; font-weight: 600;
+    color: var(--text-soft);
+    text-align: center;
+  }
+
+  /* ---------- RISK LOG ---------- */
+  .risk-card {
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 22px;
+  }
+  .risk-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .risk-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-soft);
+    border-left: 4px solid var(--info);
+    font-size: 13px; line-height: 1.45;
+  }
+  .risk-item.warn   { border-left-color: var(--warn-strong); }
+  .risk-item.danger { border-left-color: var(--cost-strong); }
+  .risk-item.good   { border-left-color: var(--profit-strong); }
+  .risk-item .icon {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--info);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #2F2A24; font-weight: 700; font-size: 13px;
+  }
+  .risk-item.warn .icon   { background: var(--warn); }
+  .risk-item.danger .icon { background: var(--cost); }
+  .risk-item.good .icon   { background: var(--profit); }
+
+  /* ---------- RECOMMENDATION ---------- */
+  .reco {
+    border-radius: var(--radius-md);
+    padding: 22px;
+    border: 1px solid var(--border);
+    background: var(--surface-solid);
+    display: flex; gap: 18px; align-items: flex-start;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+  .reco .reco-badge {
+    width: 54px; height: 54px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 800;
+    flex-shrink: 0;
+    color: #2F2A24;
+  }
+  .reco.success { background: rgba(183, 221, 176, 0.35); border-color: var(--profit-strong); }
+  .reco.success .reco-badge { background: var(--profit); }
+  .reco.warning { background: rgba(246, 217, 138, 0.35); border-color: var(--warn-strong); }
+  .reco.warning .reco-badge { background: var(--warn); }
+  .reco.danger  { background: rgba(242, 181, 181, 0.35); border-color: var(--cost-strong); }
+  .reco.danger  .reco-badge { background: var(--cost); }
+
+  [data-theme="dark"] .reco.success { background: rgba(143, 191, 135, 0.16); }
+  [data-theme="dark"] .reco.warning { background: rgba(217, 179, 106, 0.14); }
+  [data-theme="dark"] .reco.danger  { background: rgba(216, 154, 154, 0.14); }
+
+  .reco-title { font-size: 16px; font-weight: 800; margin: 0 0 4px; }
+  .reco-desc  { font-size: 13px; color: var(--text-soft); margin: 0; line-height: 1.55; }
+  .reco-actions {
+    margin-top: 12px;
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .reco-chip {
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-soft);
+  }
+
+  /* ---------- ERROR BANNER ---------- */
+  .error-banner {
+    display: none;
+    background: var(--cost);
+    color: #5a2222;
+    border: 1px solid var(--cost-strong);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .error-banner.show { display: flex; align-items: center; gap: 10px; }
+  .error-banner .ic {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #5a2222; color: var(--cost);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+  }
+  [data-theme="dark"] .error-banner { color: #2a0e0e; }
+
+  /* ---------- FOOTER ---------- */
+  .footer {
+    text-align: center;
+    padding: 18px;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Bulletproof hidden file input */
+  .visually-hidden,
+  input[type="file"].visually-hidden {
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    clip-path: inset(50%) !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: var(--radius-pill); }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  /* TOOLBAR */
+  .toolbar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--surface-solid);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    font-size: 13px; font-weight: 600;
+    transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: var(--shadow);
+    font-family: inherit;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn.primary { background: var(--accent); color: #2F2A24; border-color: transparent; }
+  .btn.accent  { background: var(--profit); color: #2F2A24; border-color: transparent; }
+  .btn.danger  { background: var(--cost); color: #2F2A24; border-color: transparent; }
+  .btn .ic {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--bg-soft); color: var(--text);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800;
+  }
+  .btn.primary .ic, .btn.accent .ic, .btn.danger .ic { background: rgba(255,255,255,0.6); color: #2F2A24; }
+
+  /* MODAL */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(20, 18, 14, 0.55);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 999;
+    padding: 20px;
+  }
+  .modal-backdrop.show { display: flex; }
+  .modal {
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 580px;
+    max-height: 85vh;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .modal-head {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg-soft);
+  }
+  .modal-title { font-size: 16px; font-weight: 800; }
+  .modal-close {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    cursor: pointer; font-size: 16px; font-weight: 700;
+    color: var(--text);
+  }
+  .modal-body {
+    padding: 22px 24px;
+    overflow: auto;
+  }
+  .modal-row {
+    display: flex; gap: 10px; margin-bottom: 14px;
+  }
+  .modal-row .input-money,
+  .modal-row .input-number,
+  .modal-row .input-text {
+    flex: 1;
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 14px; font-weight: 600;
+    color: var(--text);
+    font-family: inherit;
+    outline: none;
+  }
+  .modal-row .input-text:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(127, 179, 213, 0.18);
+  }
+
+  .scenario-list {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .scenario-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .scenario-info { flex: 1; min-width: 0; }
+  .scenario-name { font-size: 14px; font-weight: 700; color: var(--text); }
+  .scenario-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .scenario-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .icon-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface-solid);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 13px; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: transform 0.15s ease;
+  }
+  .icon-btn:hover { transform: translateY(-1px); }
+  .icon-btn.load { background: var(--profit); color: #2F2A24; border-color: transparent; }
+  .icon-btn.del  { background: var(--cost);   color: #2F2A24; border-color: transparent; }
+  .empty-state {
+    text-align: center; padding: 30px 10px;
+    color: var(--text-soft); font-size: 13px;
+  }
+  .empty-state .e-ic {
+    width: 48px; height: 48px; border-radius: 50%;
+    margin: 0 auto 10px;
+    background: var(--bg-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; color: var(--muted);
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--profit-strong);
+    color: var(--text);
+    padding: 12px 18px;
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow);
+    font-size: 13px; font-weight: 600;
+    opacity: 0; pointer-events: none;
+    transition: all 0.3s ease;
+    z-index: 1000;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.danger { border-left-color: var(--cost-strong); }
+  .toast.info { border-left-color: var(--accent); }
+
+  /*PRINT / PDF EXPORT */
+  .print-only { display: none; }
+  @media print {
+    @page { size: A4; margin: 14mm; }
+    body { background: #fff !important; color: #2F2A24 !important; }
+    body[data-theme="dark"] { background: #fff !important; color: #2F2A24 !important; }
+    .topbar, .footer, .toolbar, .modal-backdrop, .toast { display: none !important; }
+    .layout {
+      display: block !important;
+      padding: 0 !important;
+      max-width: 100% !important;
+    }
+    .panel {
+      box-shadow: none !important;
+      border: 1px solid #ccc !important;
+      background: #fff !important;
+      margin-bottom: 14px;
+    }
+    .panel[aria-label="Control Panel"] {
+      page-break-after: always;
+    }
+    .group, .kpi, .chart-card, .risk-card, .reco {
+      background: #fff !important;
+      box-shadow: none !important;
+      page-break-inside: avoid;
+    }
+    .input-money, .input-number, .slider-value {
+      background: #fff !important;
+      border-color: #ccc !important;
+      color: #2F2A24 !important;
+    }
+    .print-only { display: block !important; }
+    .print-header {
+      text-align: center;
+      padding: 16px 0 12px;
+      border-bottom: 2px solid #2F2A24;
+      margin-bottom: 18px;
+    }
+    .print-header h1 { margin: 0; font-size: 22px; }
+    .print-header p { margin: 4px 0 0; font-size: 11px; color: #555; }
+    .bar { box-shadow: none !important; }
+  }
+</style>
+</head>
+<body data-theme="light">
+
+  <!--TOP BAR-->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-label="Fariz Sidki logo">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4096 4096" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <path d="M 1992.71 1341 L 2406.88 1341.31 L 2524.1 1342.05 C 2552.39 1342.3 2584.93 1341.29 2612.66 1346.4 C 2717.74 1365.77 2783.32 1459.55 2762.67 1566.46 C 2748.77 1637.83 2695.92 1695.31 2625.96 1715.13 C 2589.52 1725.65 2523.82 1721.72 2483.67 1721.82 L 2190.34 1722.54 C 2130.57 1722.57 2037.41 1719.49 1982.14 1730.31 C 1939.61 1738.73 1899.28 1755.88 1863.72 1780.7 C 1797.28 1826.32 1769.33 1877.5 1750.28 1955.31 C 1747.45 1966.88 1746.59 1980.69 1744.3 1993.02 C 1733.02 2115.69 1671.9 2114.52 1580.94 2176.56 C 1514.58 2221.82 1462.59 2285.27 1410.86 2345.64 C 1404.91 2352.59 1390.56 2368.42 1381.85 2368.81 C 1350.84 2370.2 1344.37 2339.67 1344.15 2315.89 L 1343.93 2047.47 C 1343.88 1962.22 1341.02 1889.56 1354.65 1804.9 C 1373.37 1688.68 1422.2 1588.38 1504.83 1504.26 C 1583.03 1424.65 1679.12 1373.49 1788.72 1353.34 C 1859.17 1339.84 1921.31 1341.27 1992.71 1341 z"></path>
+          <path d="M 2035.98 2113.04 C 2039.39 2112.87 2042.8 2112.75 2046.21 2112.66 C 2138.38 2110.5 2233.07 2112.85 2325.65 2112.03 C 2368.88 2115.43 2430.15 2106.27 2471.13 2114.99 C 2613.09 2145.2 2668.35 2320.98 2561.06 2421.73 C 2497.86 2481.09 2448.23 2474.25 2371.83 2473.85 L 2207.33 2474.41 C 2166.45 2474.56 2118.75 2472.23 2078.58 2476.98 C 1890.3 2499.24 1759.03 2647.98 1742.99 2834.48 C 1739.62 2873.66 1741.6 2915.61 1741.65 2954.59 L 1741.48 3126.51 C 1727.17 3260.1 1585.14 3353.28 1459.64 3292.66 C 1411.71 3269.5 1375.01 3228.16 1357.68 3177.83 C 1337.94 3120.55 1344.89 3066.58 1344.4 3006.17 C 1342.89 2821.54 1350.21 2669.88 1433.23 2501.55 C 1522.16 2322.23 1684.48 2190.28 1878.18 2139.82 C 1918.82 2129.35 1957.46 2120.91 1999.42 2118.72 C 2010.83 2118.12 2025.58 2117.08 2035.98 2113.04 z"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">MogiBiz</div>
+        <div class="brand-author">Fariz Sidki</div>
+        <div class="brand-sub">Interactive Business What-If Simulator</div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="btn primary" id="btnSave" type="button" title="Simpan skenario">
+        <span class="ic">S</span> Save
+      </button>
+      <button class="btn" id="btnLoad" type="button" title="Buka daftar skenario tersimpan">
+        <span class="ic">L</span> Load
+      </button>
+      <button class="btn" id="btnImport" type="button" title="Import skenario dari file JSON">
+        <span class="ic">I</span> Import
+      </button>
+      <button class="btn accent" id="btnExportPDF" type="button" title="Export laporan PDF">
+        <span class="ic">P</span> PDF
+      </button>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">
+        <span class="dot" id="themeDot"></span>
+        <span id="themeLabel">Light Mode</span>
+      </button>
+    </div>
+    <input type="file" id="fileImport" accept="application/json,.json" class="visually-hidden" hidden aria-hidden="true" tabindex="-1" />
+  </header>
+
+  <main class="layout">
+
+    <!-- Print-only header (visible only in PDF export) -->
+    <div class="print-only print-header">
+      <h1>MogiBiz — Scenario Report</h1>
+      <p>by Fariz Sidki</p>
+      <p id="printMeta">Generated: —</p>
+    </div>
+
+    <!-- LEFT: INPUT PANEL -->
+    <section class="panel" aria-label="Control Panel">
+      <div class="section-title">Control Center</div>
+
+      <!-- MASTER CONFIG -->
+      <div class="group master">
+        <div class="group-header">
+          <span class="group-tag">MASTER</span>
+          Master Configuration
+        </div>
+
+        <div class="field">
+          <label for="hargaJual">Harga Jual Awal Per Unit (IDR)</label>
+          <input class="input-money" type="text" id="hargaJual" data-raw="150000" value="Rp 150.000" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="hpp">HPP / Modal Dasar Per Unit (IDR)</label>
+          <input class="input-money" type="text" id="hpp" data-raw="80000" value="Rp 80.000" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="volume">Volume Penjualan Dasar (Unit)</label>
+          <input class="input-number" type="number" id="volume" value="1000" min="0" />
+        </div>
+      </div>
+
+      <!-- FINANCE & HR -->
+      <div class="group finance">
+        <div class="group-header">
+          <span class="group-tag">DEPT.01</span>
+          Keuangan &amp; SDM
+        </div>
+
+        <div class="field">
+          <label for="gaji">Total Gaji Pokok Tim (IDR)</label>
+          <input class="input-money" type="text" id="gaji" data-raw="25000000" value="Rp 25.000.000" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="komisi">Komisi Sales</label>
+          <div class="slider-row">
+            <input type="range" id="komisi" min="0" max="100" value="5" />
+            <span class="slider-value" id="komisiVal">5%</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="pajak">Pajak Bisnis</label>
+          <div class="slider-row">
+            <input type="range" id="pajak" min="0" max="100" value="11" />
+            <span class="slider-value" id="pajakVal">11%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MARKETING -->
+      <div class="group marketing">
+        <div class="group-header">
+          <span class="group-tag">DEPT.02</span>
+          Pemasaran
+        </div>
+        <div class="field">
+          <label for="iklan">Anggaran Iklan (IDR)</label>
+          <input class="input-money" type="text" id="iklan" data-raw="10000000" value="Rp 10.000.000" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="diskon">Diskon Produk</label>
+          <div class="slider-row">
+            <input type="range" id="diskon" min="0" max="100" value="10" />
+            <span class="slider-value" id="diskonVal">10%</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="campaign">Efektivitas Campaign</label>
+          <div class="slider-row">
+            <input type="range" id="campaign" min="1" max="100" value="60" />
+            <span class="slider-value" id="campaignVal">60%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPERATIONS -->
+      <div class="group ops">
+        <div class="group-header">
+          <span class="group-tag">DEPT.03</span>
+          Operasional &amp; Logistik
+        </div>
+        <div class="field">
+          <label for="sewa">Biaya Sewa Gudang (IDR)</label>
+          <input class="input-money" type="text" id="sewa" data-raw="5000000" value="Rp 5.000.000" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="vendor">Efisiensi Vendor</label>
+          <div class="slider-row">
+            <input type="range" id="vendor" min="0" max="100" value="50" />
+            <span class="slider-value" id="vendorVal">50%</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="akurasi">Akurasi Pengiriman</label>
+          <div class="slider-row">
+            <input type="range" id="akurasi" min="0" max="100" value="90" />
+            <span class="slider-value" id="akurasiVal">90%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CUSTOMER & MARKET -->
+      <div class="group customer">
+        <div class="group-header">
+          <span class="group-tag">DEPT.04</span>
+          Pelanggan &amp; Tren Pasar
+        </div>
+        <div class="field">
+          <label for="rnd">Biaya R&amp;D (IDR)</label>
+          <input class="input-money" type="text" id="rnd" data-raw="15000000" value="Rp 15.000.000" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="retensi">Retensi Pelanggan</label>
+          <div class="slider-row">
+            <input type="range" id="retensi" min="0" max="100" value="70" />
+            <span class="slider-value" id="retensiVal">70%</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="growth">Pertumbuhan Pasar</label>
+          <div class="slider-row">
+            <input type="range" id="growth" min="-50" max="100" value="5" />
+            <span class="slider-value" id="growthVal">5%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================== RIGHT: VISUALIZATION =================== -->
+    <section class="panel" aria-label="Visualization Panel">
+      <div class="section-title">Executive Dashboard</div>
+
+      <div class="error-banner" id="errorBanner">
+        <span class="ic">!</span>
+        <span id="errorText">HPP tidak boleh lebih besar atau sama dengan Harga Jual. Mohon perbaiki nilai input.</span>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="kpi-grid">
+        <div class="kpi revenue">
+          <div class="kpi-label">Total Revenue</div>
+          <div class="kpi-value" id="kpiRevenue">Rp 0</div>
+          <div class="kpi-sub">Pendapatan kotor periode</div>
+        </div>
+        <div class="kpi profit-pos" id="kpiProfitCard">
+          <div class="kpi-label">Net Profit</div>
+          <div class="kpi-value" id="kpiProfit">Rp 0</div>
+          <div class="kpi-sub">Laba bersih setelah pajak</div>
+        </div>
+        <div class="kpi margin">
+          <div class="kpi-label">Profit Margin</div>
+          <div class="kpi-value" id="kpiMargin">0%</div>
+          <div class="kpi-sub">Rasio profit terhadap revenue</div>
+        </div>
+        <div class="kpi qty">
+          <div class="kpi-label">Qty Sold</div>
+          <div class="kpi-value" id="kpiQty">0</div>
+          <div class="kpi-sub">Unit terjual</div>
+        </div>
+      </div>
+
+      <!-- CHART -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Revenue vs Cost vs Profit</div>
+          <div class="chart-legend">
+            <span class="legend"><span class="swatch" style="background:var(--revenue-strong)"></span>Revenue</span>
+            <span class="legend"><span class="swatch" style="background:var(--cost-strong)"></span>Cost</span>
+            <span class="legend"><span class="swatch" style="background:var(--profit-strong)"></span>Profit</span>
+          </div>
+        </div>
+        <div class="chart" id="chart">
+          <div class="bar-col">
+            <div class="bar-value" id="barRevenueVal">Rp 0</div>
+            <div class="bar revenue" id="barRevenue" style="height:0%"></div>
+            <div class="bar-label">Revenue</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar-value" id="barCostVal">Rp 0</div>
+            <div class="bar cost" id="barCost" style="height:0%"></div>
+            <div class="bar-label">Cost</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar-value" id="barProfitVal">Rp 0</div>
+            <div class="bar profit" id="barProfit" style="height:0%"></div>
+            <div class="bar-label">Profit</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RISK LOG -->
+      <div class="risk-card">
+        <div class="section-title" style="margin-top:0">Interdependency &amp; Risk Log</div>
+        <ul class="risk-list" id="riskList">
+          <!-- Populated dynamically -->
+        </ul>
+      </div>
+
+      <!-- RECOMMENDATION -->
+      <div class="section-title">Prescriptive Recommendation</div>
+      <div class="reco success" id="reco">
+        <div class="reco-badge" id="recoBadge">✓</div>
+        <div>
+          <h3 class="reco-title" id="recoTitle">Skenario Sukses</h3>
+          <p class="reco-desc" id="recoDesc">Strategi saat ini sehat. Pertahankan momentum, alokasikan surplus untuk ekspansi dan retensi pelanggan.</p>
+          <div class="reco-actions" id="recoActions"></div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="footer">
+    MogiBiz · by Fariz Sidki · © <span id="year"></span>
+  </footer>
+
+  <!-- =================== MODALS =================== -->
+  <div class="modal-backdrop" id="saveModal" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-title">Simpan Skenario</div>
+        <button class="modal-close" data-close="saveModal" aria-label="Tutup">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin:0 0 14px; font-size:13px; color:var(--text-soft)">
+          Beri nama skenario ini agar bisa dimuat ulang kapan saja. Tersimpan otomatis di browser & tersedia offline.
+        </p>
+        <div class="modal-row">
+          <input type="text" class="input-text" id="scenarioNameInput" placeholder="Contoh: Strategi Q1 — Agresif Diskon" maxlength="80" />
+        </div>
+        <div class="modal-row" style="justify-content:flex-end">
+          <button class="btn" data-close="saveModal" type="button">Batal</button>
+          <button class="btn primary" id="btnConfirmSave" type="button">Simpan Skenario</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="loadModal" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-title">Skenario Tersimpan</div>
+        <button class="modal-close" data-close="loadModal" aria-label="Tutup">×</button>
+      </div>
+      <div class="modal-body">
+        <ul class="scenario-list" id="scenarioList"></ul>
+        <div class="modal-row" style="justify-content:space-between; margin-top:18px">
+          <button class="btn" id="btnExportAll" type="button" title="Download semua skenario sebagai JSON">
+            <span class="ic">↓</span> Export All (JSON)
+          </button>
+          <button class="btn danger" id="btnClearAll" type="button" title="Hapus semua skenario">
+            <span class="ic">!</span> Clear All
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Tersimpan</div>
+
+<script>
+/* MogiBiz Engine — Pure DOM. No external libraries. */
+
+(function () {
+  "use strict";
+
+  /* UTILITIES */
+  const fmtIDR = (n) => {
+    if (!isFinite(n)) n = 0;
+    const sign = n < 0 ? "-" : "";
+    const abs = Math.abs(Math.round(n));
+    return sign + "Rp " + abs.toLocaleString("id-ID");
+  };
+  const fmtIDRCompact = (n) => {
+    if (!isFinite(n)) n = 0;
+    const sign = n < 0 ? "-" : "";
+    const abs = Math.abs(n);
+    if (abs >= 1e12) return sign + "Rp " + (abs/1e12).toFixed(2) + " T";
+    if (abs >= 1e9)  return sign + "Rp " + (abs/1e9).toFixed(2) + " M";
+    if (abs >= 1e6)  return sign + "Rp " + (abs/1e6).toFixed(2) + " Jt";
+    if (abs >= 1e3)  return sign + "Rp " + (abs/1e3).toFixed(1) + " rb";
+    return sign + "Rp " + Math.round(abs).toLocaleString("id-ID");
+  };
+  const fmtNum = (n) => Math.round(n).toLocaleString("id-ID");
+
+  /* THEME */
+  const themeBtn   = document.getElementById("themeToggle");
+  const themeLabel = document.getElementById("themeLabel");
+  themeBtn.addEventListener("click", () => {
+    const cur = document.body.getAttribute("data-theme");
+    const next = cur === "light" ? "dark" : "light";
+    document.body.setAttribute("data-theme", next);
+    themeLabel.textContent = next === "light" ? "Light Mode" : "Dark Mode";
+  });
+
+  /* RUPIAH AUTO FORMAT */
+  const moneyInputs = document.querySelectorAll(".input-money");
+  moneyInputs.forEach((inp) => {
+    // initialize display from data-raw
+    const initRaw = parseFloat(inp.getAttribute("data-raw")) || 0;
+    inp.value = "Rp " + initRaw.toLocaleString("id-ID");
+
+    inp.addEventListener("input", (e) => {
+      const digits = (e.target.value || "").replace(/[^\d]/g, "");
+      const raw = digits ? parseInt(digits, 10) : 0;
+      inp.setAttribute("data-raw", String(raw));
+      const caretEnd = inp.selectionEnd;
+      inp.value = "Rp " + raw.toLocaleString("id-ID");
+      // place caret at end after reformat
+      try { inp.setSelectionRange(inp.value.length, inp.value.length); } catch (e) {}
+      recalc();
+    });
+
+    inp.addEventListener("focus", () => {
+      // keep formatted but move caret to end
+      setTimeout(() => {
+        try { inp.setSelectionRange(inp.value.length, inp.value.length); } catch (e) {}
+      }, 0);
+    });
+  });
+
+  /* SLIDERS LIVE LABEL */
+  const sliderMap = [
+    ["komisi", "komisiVal", "%"],
+    ["pajak", "pajakVal", "%"],
+    ["diskon", "diskonVal", "%"],
+    ["campaign", "campaignVal", "%"],
+    ["vendor", "vendorVal", "%"],
+    ["akurasi", "akurasiVal", "%"],
+    ["retensi", "retensiVal", "%"],
+    ["growth", "growthVal", "%"],
+  ];
+  sliderMap.forEach(([id, valId, suf]) => {
+    const s = document.getElementById(id);
+    const v = document.getElementById(valId);
+    s.addEventListener("input", () => {
+      v.textContent = s.value + suf;
+      recalc();
+    });
+  });
+
+  /* number inputs */
+  document.getElementById("volume").addEventListener("input", recalc);
+
+  /* VALUE GETTERS */
+  const getMoney = (id) => parseFloat(document.getElementById(id).getAttribute("data-raw")) || 0;
+  const getNum   = (id) => {
+    const v = parseFloat(document.getElementById(id).value);
+    return isFinite(v) ? v : 0;
+  };
+
+  /* DOM REFS (output) */
+  const out = {
+    error:        document.getElementById("errorBanner"),
+    errorText:    document.getElementById("errorText"),
+    revenue:      document.getElementById("kpiRevenue"),
+    profit:       document.getElementById("kpiProfit"),
+    margin:       document.getElementById("kpiMargin"),
+    qty:          document.getElementById("kpiQty"),
+    profitCard:   document.getElementById("kpiProfitCard"),
+    barR:         document.getElementById("barRevenue"),
+    barC:         document.getElementById("barCost"),
+    barP:         document.getElementById("barProfit"),
+    barRV:        document.getElementById("barRevenueVal"),
+    barCV:        document.getElementById("barCostVal"),
+    barPV:        document.getElementById("barProfitVal"),
+    riskList:     document.getElementById("riskList"),
+    reco:         document.getElementById("reco"),
+    recoTitle:    document.getElementById("recoTitle"),
+    recoDesc:     document.getElementById("recoDesc"),
+    recoBadge:    document.getElementById("recoBadge"),
+    recoActions:  document.getElementById("recoActions"),
+  };
+
+  /* RISK ITEM BUILDER */
+  const buildRisk = (level, icon, text) => {
+    const li = document.createElement("li");
+    li.className = "risk-item " + level;
+    li.innerHTML = `<span class="icon">${icon}</span><span>${text}</span>`;
+    return li;
+  };
+
+  /* CORE CALCULATION */
+  function recalc() {
+    // Inputs
+    const hargaJual = getMoney("hargaJual");
+    const hpp       = getMoney("hpp");
+    const volume    = getNum("volume");
+
+    const gaji      = getMoney("gaji");
+    const komisi    = getNum("komisi");
+    const pajak     = getNum("pajak");
+
+    const iklan     = getMoney("iklan");
+    const diskon    = getNum("diskon");
+    const campaign  = getNum("campaign");
+
+    const sewa      = getMoney("sewa");
+    const vendor    = getNum("vendor");
+    const akurasi   = getNum("akurasi");
+
+    const rnd       = getMoney("rnd");
+    const retensi   = getNum("retensi");
+    const growth    = getNum("growth");
+
+    // A. Validasi Error
+    if (hpp >= hargaJual) {
+      out.error.classList.add("show");
+      out.errorText.textContent =
+        `HPP (${fmtIDR(hpp)}) tidak boleh ≥ Harga Jual (${fmtIDR(hargaJual)}). Perhitungan finansial dihentikan.`;
+      // Reset outputs
+      out.revenue.textContent = "Rp 0";
+      out.profit.textContent  = "Rp 0";
+      out.margin.textContent  = "0%";
+      out.qty.textContent     = "0";
+      out.profitCard.className = "kpi profit-neg";
+      out.barR.style.height = "0%"; out.barRV.textContent = "Rp 0";
+      out.barC.style.height = "0%"; out.barCV.textContent = "Rp 0";
+      out.barP.style.height = "0%"; out.barPV.textContent = "Rp 0";
+      out.barP.classList.remove("neg");
+
+      out.riskList.innerHTML = "";
+      out.riskList.appendChild(buildRisk("danger", "!", "HPP melebihi atau setara Harga Jual — model bisnis tidak layak. Naikkan harga jual atau turunkan HPP."));
+
+      out.reco.className = "reco danger";
+      out.recoBadge.textContent = "⚠";
+      out.recoTitle.textContent = "Skenario Kritis / Defisit";
+      out.recoDesc.textContent  = "Margin negatif sejak unit pertama. Bisnis akan rugi terlepas dari volume penjualan.";
+      out.recoActions.innerHTML =
+        '<span class="reco-chip">Audit Harga</span><span class="reco-chip">Negosiasi Supplier</span><span class="reco-chip">Hentikan Promosi</span>';
+      return;
+    } else {
+      out.error.classList.remove("show");
+    }
+
+    // B. Interdependensi
+    const growthAktual = growth + (diskon * 0.4);
+
+    let retensiAktual = retensi;
+    let retensiNote = null;
+    if (akurasi < 75) {
+      retensiAktual = Math.max(0, retensi - ((75 - akurasi) * 1.5));
+      retensiNote = `Akurasi pengiriman rendah (${akurasi}%) menggerus retensi pelanggan dari ${retensi}% → ${retensiAktual.toFixed(1)}%.`;
+    }
+    if (rnd > 50000000) {
+      const before = retensiAktual;
+      retensiAktual = Math.min(100, retensiAktual + 15);
+      retensiNote = (retensiNote ? retensiNote + " " : "") +
+        `Investasi R&D besar (${fmtIDRCompact(rnd)}) mendongkrak retensi dari ${before.toFixed(1)}% → ${retensiAktual.toFixed(1)}%.`;
+    }
+
+    // C. Faktor Pengali
+    const faktorIklan  = 1 + ((iklan / 25000000) * (campaign / 100));
+    const faktorSales  = 1 + ((komisi / 100) * 0.4);
+    const faktorPasar  = (1 + (growthAktual / 100)) * (1 + (retensiAktual / 100));
+
+    // D. Kalkulasi Finansial
+    let qtySold = Math.round(volume * faktorIklan * faktorSales * faktorPasar);
+    if (qtySold < 0) qtySold = 0;
+
+    const hargaAktual = hargaJual * (1 - (diskon / 100));
+    const totalRevenue = qtySold * hargaAktual;
+
+    const hppUnit = hpp * (1 - ((vendor / 100) * 0.35));
+    const totalCOGS = qtySold * hppUnit;
+
+    const biayaKomisi = totalRevenue * (komisi / 100);
+
+    let penaltiLogistik = 0;
+    if (akurasi < 85) {
+      penaltiLogistik = (85 - akurasi) * (qtySold * hargaAktual * 0.02);
+    }
+
+    const totalOPEX  = gaji + iklan + sewa + rnd + biayaKomisi + penaltiLogistik;
+    const totalCost  = totalCOGS + totalOPEX;
+
+    const ebt = totalRevenue - totalCost;
+    const nominalPajak = ebt > 0 ? ebt * (pajak / 100) : 0;
+    const netProfit = ebt - nominalPajak;
+    const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+
+    // KPI Render
+    out.revenue.textContent = fmtIDR(totalRevenue);
+    out.profit.textContent  = fmtIDR(netProfit);
+    out.margin.textContent  = profitMargin.toFixed(2) + "%";
+    out.qty.textContent     = fmtNum(qtySold);
+    out.profitCard.className = "kpi " + (netProfit >= 0 ? "profit-pos" : "profit-neg");
+
+    // Chart Render
+    const maxVal = Math.max(totalRevenue, totalCost, Math.abs(netProfit), 1);
+    const hR = Math.max(2, (totalRevenue / maxVal) * 100);
+    const hC = Math.max(2, (totalCost    / maxVal) * 100);
+    const hP = Math.max(2, (Math.abs(netProfit) / maxVal) * 100);
+    out.barR.style.height = hR + "%"; out.barRV.textContent = fmtIDRCompact(totalRevenue);
+    out.barC.style.height = hC + "%"; out.barCV.textContent = fmtIDRCompact(totalCost);
+    out.barP.style.height = hP + "%"; out.barPV.textContent = fmtIDRCompact(netProfit);
+    out.barP.classList.toggle("neg", netProfit < 0);
+
+    // Risk Log
+    const risks = [];
+
+    risks.push({
+      level: growthAktual >= 0 ? "good" : "warn",
+      icon: "G",
+      text: `Growth Aktual = <b>${growthAktual.toFixed(1)}%</b> (Pasar ${growth}% + boost diskon ${(diskon*0.4).toFixed(1)}%).`,
+    });
+
+    if (akurasi < 75) {
+      risks.push({ level: "danger", icon: "!", text: retensiNote });
+    } else if (akurasi < 85) {
+      risks.push({
+        level: "warn", icon: "L",
+        text: `Akurasi pengiriman ${akurasi}% memicu penalti logistik sebesar <b>${fmtIDRCompact(penaltiLogistik)}</b>.`,
+      });
+    } else {
+      risks.push({ level: "good", icon: "✓", text: `Akurasi pengiriman sehat (${akurasi}%). Tidak ada penalti logistik.` });
+    }
+
+    if (rnd > 50000000) {
+      risks.push({
+        level: "good", icon: "R",
+        text: `R&D besar (${fmtIDRCompact(rnd)}) menambah +15 poin retensi → Retensi Aktual <b>${retensiAktual.toFixed(1)}%</b>.`,
+      });
+    } else {
+      risks.push({
+        level: "warn", icon: "R",
+        text: `Investasi R&D ${fmtIDRCompact(rnd)} belum mencapai threshold Rp 50 Jt untuk bonus retensi (+15).`,
+      });
+    }
+
+    risks.push({
+      level: faktorIklan >= 1.4 ? "good" : "warn",
+      icon: "A",
+      text: `Faktor Iklan ×<b>${faktorIklan.toFixed(2)}</b> (Anggaran ${fmtIDRCompact(iklan)} · Efektivitas ${campaign}%).`,
+    });
+
+    risks.push({
+      level: "warn",
+      icon: "S",
+      text: `Faktor Sales ×<b>${faktorSales.toFixed(2)}</b> · Faktor Pasar ×<b>${faktorPasar.toFixed(2)}</b>.`,
+    });
+
+    if (diskon >= 50) {
+      risks.push({ level: "danger", icon: "%", text: `Diskon agresif ${diskon}% memangkas harga aktual menjadi <b>${fmtIDR(hargaAktual)}</b>/unit.` });
+    }
+
+    if (vendor < 30) {
+      risks.push({ level: "warn", icon: "V", text: `Efisiensi vendor rendah (${vendor}%) menjaga HPP/unit tinggi di <b>${fmtIDR(hppUnit)}</b>.` });
+    }
+
+    out.riskList.innerHTML = "";
+    risks.forEach(r => out.riskList.appendChild(buildRisk(r.level, r.icon, r.text)));
+
+    // Recommendation
+    if (netProfit > 0 && profitMargin >= 25) {
+      out.reco.className = "reco success";
+      out.recoBadge.textContent = "✓";
+      out.recoTitle.textContent = "Skenario Sukses";
+      out.recoDesc.textContent  =
+        `Margin sehat di ${profitMargin.toFixed(2)}% dengan laba bersih ${fmtIDRCompact(netProfit)}. Strategi saat ini berkelanjutan — alokasikan surplus untuk ekspansi pasar, retensi, dan inovasi produk.`;
+      out.recoActions.innerHTML =
+        '<span class="reco-chip">Scale Ad Spend</span><span class="reco-chip">Reward Loyal Customer</span><span class="reco-chip">Expand Market</span>';
+    } else if (netProfit > 0 && profitMargin < 25) {
+      out.reco.className = "reco warning";
+      out.recoBadge.textContent = "~";
+      out.recoTitle.textContent = "Skenario Laba Tipis";
+      out.recoDesc.textContent  =
+        `Profit positif ${fmtIDRCompact(netProfit)} namun margin hanya ${profitMargin.toFixed(2)}% (< 25%). Bisnis rentan terhadap kenaikan biaya. Fokus pada efisiensi vendor, kurangi diskon, atau naikkan harga.`;
+      out.recoActions.innerHTML =
+        '<span class="reco-chip">Optimize HPP</span><span class="reco-chip">Trim Discount</span><span class="reco-chip">Improve Logistics</span>';
+    } else {
+      out.reco.className = "reco danger";
+      out.recoBadge.textContent = "⚠";
+      out.recoTitle.textContent = "Skenario Kritis / Defisit";
+      out.recoDesc.textContent  =
+        `Kerugian sebesar ${fmtIDRCompact(netProfit)} pada margin ${profitMargin.toFixed(2)}%. Restrukturisasi diperlukan: tinjau ulang harga, pangkas OPEX, dan tunda investasi besar hingga arus kas pulih.`;
+      out.recoActions.innerHTML =
+        '<span class="reco-chip">Cut OPEX</span><span class="reco-chip">Re-price Product</span><span class="reco-chip">Pause R&D</span>';
+    }
+  }
+
+  // Footer year
+  document.getElementById("year").textContent = new Date().getFullYear();
+
+  // Initial run
+  recalc();
+
+  /* SCENARIO MANAGER (Save / Load / Import / Export) */
+  const STORAGE_KEY = "ewr_scenarios_v1";
+  const MONEY_IDS  = ["hargaJual", "hpp", "gaji", "iklan", "sewa", "rnd"];
+  const NUMBER_IDS = ["volume"];
+  const SLIDER_IDS = ["komisi", "pajak", "diskon", "campaign", "vendor", "akurasi", "retensi", "growth"];
+
+  function collectScenario() {
+    const data = {};
+    MONEY_IDS.forEach(id => { data[id] = getMoney(id); });
+    NUMBER_IDS.forEach(id => { data[id] = getNum(id); });
+    SLIDER_IDS.forEach(id => { data[id] = getNum(id); });
+    return data;
+  }
+
+  function applyScenario(data) {
+    if (!data || typeof data !== "object") return false;
+    MONEY_IDS.forEach(id => {
+      if (typeof data[id] === "number" && isFinite(data[id])) {
+        const el = document.getElementById(id);
+        const raw = Math.max(0, Math.round(data[id]));
+        el.setAttribute("data-raw", String(raw));
+        el.value = "Rp " + raw.toLocaleString("id-ID");
+      }
+    });
+    NUMBER_IDS.forEach(id => {
+      if (typeof data[id] === "number" && isFinite(data[id])) {
+        document.getElementById(id).value = data[id];
+      }
+    });
+    SLIDER_IDS.forEach(id => {
+      if (typeof data[id] === "number" && isFinite(data[id])) {
+        const s = document.getElementById(id);
+        s.value = data[id];
+        const v = document.getElementById(id + "Val");
+        if (v) v.textContent = s.value + "%";
+      }
+    });
+    recalc();
+    return true;
+  }
+
+  function loadAllScenarios() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+  function saveAllScenarios(list) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); return true; }
+    catch (e) { return false; }
+  }
+
+  function showToast(msg, level) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = "toast show" + (level ? " " + level : "");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => { t.className = "toast"; }, 2400);
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add("show"); }
+  function closeModal(id) { document.getElementById(id).classList.remove("show"); }
+
+  document.querySelectorAll("[data-close]").forEach(b => {
+    b.addEventListener("click", () => closeModal(b.getAttribute("data-close")));
+  });
+  document.querySelectorAll(".modal-backdrop").forEach(bd => {
+    bd.addEventListener("click", (e) => { if (e.target === bd) bd.classList.remove("show"); });
+  });
+
+  // SAVE
+  document.getElementById("btnSave").addEventListener("click", () => {
+    const def = "Skenario " + new Date().toLocaleString("id-ID", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+    document.getElementById("scenarioNameInput").value = def;
+    openModal("saveModal");
+    setTimeout(() => document.getElementById("scenarioNameInput").select(), 50);
+  });
+
+  document.getElementById("btnConfirmSave").addEventListener("click", () => {
+    const name = (document.getElementById("scenarioNameInput").value || "").trim() || "Untitled";
+    const list = loadAllScenarios();
+    list.unshift({
+      id: "s_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+      name: name,
+      savedAt: new Date().toISOString(),
+      data: collectScenario(),
+    });
+    if (saveAllScenarios(list)) {
+      closeModal("saveModal");
+      showToast("Skenario \"" + name + "\" tersimpan");
+    } else {
+      showToast("Gagal menyimpan (storage penuh?)", "danger");
+    }
+  });
+
+  // LOAD LIST
+  function renderScenarioList() {
+    const list = loadAllScenarios();
+    const ul = document.getElementById("scenarioList");
+    ul.innerHTML = "";
+    if (!list.length) {
+      ul.innerHTML = '<li class="empty-state"><div class="e-ic">∅</div>Belum ada skenario tersimpan.<br/>Klik <b>Save</b> untuk menyimpan konfigurasi saat ini.</li>';
+      return;
+    }
+    list.forEach(s => {
+      const li = document.createElement("li");
+      li.className = "scenario-item";
+      const dt = new Date(s.savedAt);
+      const meta = dt.toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" });
+      li.innerHTML =
+        '<div class="scenario-info">' +
+          '<div class="scenario-name"></div>' +
+          '<div class="scenario-meta">' + meta + '</div>' +
+        '</div>' +
+        '<div class="scenario-actions">' +
+          '<button class="icon-btn load" data-act="load" data-id="' + s.id + '" title="Muat">↑</button>' +
+          '<button class="icon-btn" data-act="export" data-id="' + s.id + '" title="Export JSON">↓</button>' +
+          '<button class="icon-btn del" data-act="del" data-id="' + s.id + '" title="Hapus">×</button>' +
+        '</div>';
+      li.querySelector(".scenario-name").textContent = s.name;
+      ul.appendChild(li);
+    });
+  }
+
+  document.getElementById("btnLoad").addEventListener("click", () => {
+    renderScenarioList();
+    openModal("loadModal");
+  });
+
+  document.getElementById("scenarioList").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-act]");
+    if (!btn) return;
+    const id = btn.getAttribute("data-id");
+    const act = btn.getAttribute("data-act");
+    const list = loadAllScenarios();
+    const idx = list.findIndex(x => x.id === id);
+    if (idx === -1) return;
+
+    if (act === "load") {
+      applyScenario(list[idx].data);
+      closeModal("loadModal");
+      showToast("Skenario \"" + list[idx].name + "\" dimuat", "info");
+    } else if (act === "del") {
+      if (confirm('Hapus skenario "' + list[idx].name + '"?')) {
+        const name = list[idx].name;
+        list.splice(idx, 1);
+        saveAllScenarios(list);
+        renderScenarioList();
+        showToast("Skenario \"" + name + "\" dihapus", "danger");
+      }
+    } else if (act === "export") {
+      downloadJSON([list[idx]], "scenario-" + list[idx].name.replace(/[^a-z0-9]+/gi, "_") + ".json");
+    }
+  });
+
+  // EXPORT ALL JSON
+  document.getElementById("btnExportAll").addEventListener("click", () => {
+    const list = loadAllScenarios();
+    if (!list.length) { showToast("Tidak ada skenario untuk diexport", "danger"); return; }
+    downloadJSON(list, "MogiBiz-scenarios.json");
+  });
+
+  // CLEAR ALL
+  document.getElementById("btnClearAll").addEventListener("click", () => {
+    if (!loadAllScenarios().length) { showToast("Tidak ada skenario tersimpan", "info"); return; }
+    if (confirm("Hapus SEMUA skenario tersimpan? Aksi ini tidak dapat dibatalkan.")) {
+      saveAllScenarios([]);
+      renderScenarioList();
+      showToast("Semua skenario dihapus", "danger");
+    }
+  });
+
+async function downloadJSON(payload, filename) {
+  try {
+    console.log("TAURI:", window.__TAURI__);
+
+    const { save } = window.__TAURI__.dialog;
+    const { writeTextFile } = window.__TAURI__.fs;
+
+    const path = await save({
+      defaultPath: filename,
+      filters: [
+        {
+          name: "JSON",
+          extensions: ["json"]
+        }
+      ]
+    });
+
+    console.log("PATH:", path);
+
+    if (!path) {
+      showToast("Export dibatalkan");
+      return;
+    }
+
+    await writeTextFile(
+      path,
+      JSON.stringify(payload, null, 2)
+    );
+
+    showToast("Export berhasil");
+
+  } catch (err) {
+    console.error("EXPORT ERROR:", err);
+    showToast("Export gagal: " + err, "danger");
+  }
+}
+
+  // IMPORT JSON
+  document.getElementById("btnImport").addEventListener("click", () => {
+    document.getElementById("fileImport").click();
+  });
+  document.getElementById("fileImport").addEventListener("change", (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const parsed = JSON.parse(ev.target.result);
+        // Accept either: array of scenarios | single scenario object | raw data object
+        let items = [];
+        if (Array.isArray(parsed)) items = parsed;
+        else if (parsed && parsed.data) items = [parsed];
+        else if (parsed && typeof parsed === "object") items = [{ id: "s_" + Date.now(), name: "Imported", savedAt: new Date().toISOString(), data: parsed }];
+
+        if (!items.length) throw new Error("File kosong");
+        const existing = loadAllScenarios();
+        let added = 0;
+        items.forEach(it => {
+          if (it && it.data) {
+            existing.unshift({
+              id: it.id || ("s_" + Date.now() + "_" + Math.random().toString(36).slice(2,7)),
+              name: it.name || "Imported",
+              savedAt: it.savedAt || new Date().toISOString(),
+              data: it.data,
+            });
+            added++;
+          }
+        });
+        saveAllScenarios(existing);
+        renderScenarioList();
+        showToast(added + " skenario diimport", "info");
+        // Auto-apply the first imported scenario
+        if (items[0] && items[0].data) applyScenario(items[0].data);
+      } catch (err) {
+        showToast("File JSON tidak valid", "danger");
+      } finally {
+        e.target.value = "";
+      }
+    };
+    reader.readAsText(f);
+  });
+
+  // EXPORT PDF
+  document.getElementById("btnExportPDF").addEventListener("click", () => {
+    const now = new Date().toLocaleString("id-ID", { dateStyle: "full", timeStyle: "short" });
+    document.getElementById("printMeta").textContent = "Generated: " + now;
+    showToast("Membuka dialog cetak — pilih \"Save as PDF\"", "info");
+    setTimeout(() => window.print(), 1000);
+  });
+
+  // Keyboard shortcut: ESC to close modals
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      document.querySelectorAll(".modal-backdrop.show").forEach(m => m.classList.remove("show"));
+    }
+  });
+})();
+</script>
+</body>
+</html>
