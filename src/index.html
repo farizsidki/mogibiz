@@ -26,7 +26,6 @@
     --profit-strong:#86C57E;
     --warn:          #F6D98A; 
     --warn-strong:   #E8B85C;
-    --danger:        #F2B5B5;
     --info:          #C8B7E0; 
 
     --shadow:        0 10px 30px rgba(60, 50, 35, 0.08), 0 2px 8px rgba(60, 50, 35, 0.04);
@@ -55,7 +54,6 @@
     --profit-strong:#B7DDB0;
     --warn:          #D9B36A;
     --warn-strong:   #F6D98A;
-    --danger:        #D89A9A;
     --info:          #B3A2D0;
 
     --shadow:        0 12px 36px rgba(0,0,0,0.35), 0 2px 10px rgba(0,0,0,0.25);
@@ -162,8 +160,15 @@
     backdrop-filter: blur(8px);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 24px;
     box-shadow: var(--shadow);
+    height: calc(100vh - 120px);
+    overflow: hidden;
+  }
+
+  .panel-inner {
+    height: 100%;
+    overflow-y: auto;
+    padding: 24px;
   }
 
   .section-title {
@@ -407,6 +412,7 @@
   .risk-item.warn   { border-left-color: var(--warn-strong); }
   .risk-item.danger { border-left-color: var(--cost-strong); }
   .risk-item.good   { border-left-color: var(--profit-strong); }
+
   .risk-item .icon {
     width: 22px; height: 22px; border-radius: 50%;
     background: var(--info);
@@ -674,20 +680,17 @@
     body { background: #fff !important; color: #2F2A24 !important; }
     body[data-theme="dark"] { background: #fff !important; color: #2F2A24 !important; }
     .topbar, .footer, .toolbar, .modal-backdrop, .toast { display: none !important; }
-    .layout {
-      display: block !important;
-      padding: 0 !important;
-      max-width: 100% !important;
-    }
+    .layout { display: block !important; padding: 0 !important; max-width: 100% !important; }
     .panel {
       box-shadow: none !important;
       border: 1px solid #ccc !important;
       background: #fff !important;
       margin-bottom: 14px;
+      height: auto !important;
+      overflow: visible !important;
     }
-    .panel[aria-label="Control Panel"] {
-      page-break-after: always;
-    }
+    .panel-inner { height: auto !important; overflow: visible !important; padding: 24px !important; }
+    .panel[aria-label="Control Panel"] { page-break-after: always; }
     .group, .kpi, .chart-card, .risk-card, .reco {
       background: #fff !important;
       box-shadow: none !important;
@@ -698,6 +701,23 @@
       border-color: #ccc !important;
       color: #2F2A24 !important;
     }
+    .slider-row input[type="range"] { display: none !important; }
+    .slider-value { display: inline-block !important; border: 1px solid #ccc !important; }
+    .chart { display: flex !important; align-items: flex-end !important; height: 260px !important; }
+    .bar-col {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
+      height: 260px !important;
+      flex: 1 !important;
+    }
+    .bar { display: block !important; box-shadow: none !important; }
+    .bar.revenue { background: #6FA8D6 !important; }
+    .bar.cost    { background: #E78F8F !important; }
+    .bar.profit  { background: #86C57E !important; }
+    .bar.profit.neg { background: #E78F8F !important; }
+    .bar { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     .print-only { display: block !important; }
     .print-header {
       text-align: center;
@@ -707,7 +727,6 @@
     }
     .print-header h1 { margin: 0; font-size: 22px; }
     .print-header p { margin: 4px 0 0; font-size: 11px; color: #555; }
-    .bar { box-shadow: none !important; }
   }
 </style>
 </head>
@@ -760,6 +779,7 @@
 
     <!-- LEFT: INPUT PANEL -->
     <section class="panel" aria-label="Control Panel">
+      <div class="panel-inner">
       <div class="section-title">Control Center</div>
 
       <!-- MASTER CONFIG -->
@@ -887,10 +907,12 @@
           </div>
         </div>
       </div>
+      </div>
     </section>
 
     <!-- =================== RIGHT: VISUALIZATION =================== -->
     <section class="panel" aria-label="Visualization Panel">
+      <div class="panel-inner">
       <div class="section-title">Executive Dashboard</div>
 
       <div class="error-banner" id="errorBanner">
@@ -969,6 +991,7 @@
           <div class="reco-actions" id="recoActions"></div>
         </div>
       </div>
+      </div>
 
     </section>
   </main>
@@ -1023,27 +1046,32 @@
 
 <script>
 /* MogiBiz Engine — Pure DOM. No external libraries. */
+document.addEventListener("keydown", (e) => {
+  if (
+    e.key === "F12" ||
+    (e.ctrlKey && e.shiftKey && ["I","J","C"].includes(e.key)) ||
+    (e.ctrlKey && e.key === "U")
+  ) e.preventDefault();
+});
+document.addEventListener("contextmenu", (e) => e.preventDefault());
 
 (function () {
   "use strict";
 
   /* UTILITIES */
-  const fmtIDR = (n) => {
-    if (!isFinite(n)) n = 0;
-    const sign = n < 0 ? "-" : "";
-    const abs = Math.abs(Math.round(n));
-    return sign + "Rp " + abs.toLocaleString("id-ID");
-  };
-  const fmtIDRCompact = (n) => {
+  const fmtIDR = (n, compact) => {
     if (!isFinite(n)) n = 0;
     const sign = n < 0 ? "-" : "";
     const abs = Math.abs(n);
-    if (abs >= 1e12) return sign + "Rp " + (abs/1e12).toFixed(2) + " T";
-    if (abs >= 1e9)  return sign + "Rp " + (abs/1e9).toFixed(2) + " M";
-    if (abs >= 1e6)  return sign + "Rp " + (abs/1e6).toFixed(2) + " Jt";
-    if (abs >= 1e3)  return sign + "Rp " + (abs/1e3).toFixed(1) + " rb";
+    if (compact) {
+      if (abs >= 1e12) return sign + "Rp " + (abs/1e12).toFixed(2) + " T";
+      if (abs >= 1e9)  return sign + "Rp " + (abs/1e9).toFixed(2) + " M";
+      if (abs >= 1e6)  return sign + "Rp " + (abs/1e6).toFixed(2) + " Jt";
+      if (abs >= 1e3)  return sign + "Rp " + (abs/1e3).toFixed(1) + " rb";
+    }
     return sign + "Rp " + Math.round(abs).toLocaleString("id-ID");
   };
+  const fmtIDRCompact = (n) => fmtIDR(n, true);
   const fmtNum = (n) => Math.round(n).toLocaleString("id-ID");
 
   /* THEME */
@@ -1083,21 +1111,10 @@
   });
 
   /* SLIDERS LIVE LABEL */
-  const sliderMap = [
-    ["komisi", "komisiVal", "%"],
-    ["pajak", "pajakVal", "%"],
-    ["diskon", "diskonVal", "%"],
-    ["campaign", "campaignVal", "%"],
-    ["vendor", "vendorVal", "%"],
-    ["akurasi", "akurasiVal", "%"],
-    ["retensi", "retensiVal", "%"],
-    ["growth", "growthVal", "%"],
-  ];
-  sliderMap.forEach(([id, valId, suf]) => {
-    const s = document.getElementById(id);
-    const v = document.getElementById(valId);
+  document.querySelectorAll('input[type="range"]').forEach(s => {
     s.addEventListener("input", () => {
-      v.textContent = s.value + suf;
+      const v = document.getElementById(s.id + "Val");
+      if (v) v.textContent = s.value + "%";
       recalc();
     });
   });
@@ -1135,13 +1152,7 @@
     recoActions:  document.getElementById("recoActions"),
   };
 
-  /* RISK ITEM BUILDER */
-  const buildRisk = (level, icon, text) => {
-    const li = document.createElement("li");
-    li.className = "risk-item " + level;
-    li.innerHTML = `<span class="icon">${icon}</span><span>${text}</span>`;
-    return li;
-  };
+
 
   /* CORE CALCULATION */
   function recalc() {
@@ -1182,8 +1193,7 @@
       out.barP.style.height = "0%"; out.barPV.textContent = "Rp 0";
       out.barP.classList.remove("neg");
 
-      out.riskList.innerHTML = "";
-      out.riskList.appendChild(buildRisk("danger", "!", "HPP melebihi atau setara Harga Jual — model bisnis tidak layak. Naikkan harga jual atau turunkan HPP."));
+      out.riskList.innerHTML = `<li class="risk-item danger"><span class="icon">!</span><span>HPP melebihi atau setara Harga Jual — model bisnis tidak layak. Naikkan harga jual atau turunkan HPP.</span></li>`;
 
       out.reco.className = "reco danger";
       out.recoBadge.textContent = "⚠";
@@ -1311,8 +1321,9 @@
       risks.push({ level: "warn", icon: "V", text: `Efisiensi vendor rendah (${vendor}%) menjaga HPP/unit tinggi di <b>${fmtIDR(hppUnit)}</b>.` });
     }
 
-    out.riskList.innerHTML = "";
-    risks.forEach(r => out.riskList.appendChild(buildRisk(r.level, r.icon, r.text)));
+    out.riskList.innerHTML = risks.map(r =>
+      `<li class="risk-item ${r.level}"><span class="icon">${r.icon}</span><span>${r.text}</span></li>`
+    ).join("");
 
     // Recommendation
     if (netProfit > 0 && profitMargin >= 25) {
